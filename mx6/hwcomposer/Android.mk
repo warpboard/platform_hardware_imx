@@ -41,6 +41,13 @@ LOCAL_MODULE := hwcomposer.$(TARGET_BOARD_PLATFORM)
 LOCAL_C_INCLUDES += hardware/imx/mx6/libgralloc_wrapper
 LOCAL_CFLAGS:= -DLOG_TAG=\"hwcomposer\"
 LOCAL_CFLAGS += -DENABLE_VSYNC
+
+ifeq ($(BOARD_HAVE_VPU), false)
+ifeq ($(HAVE_FSL_IMX_GPU3D), false)
+LOCAL_CFLAGS += -DMEDIA_DEPEND_ON_GPU2D
+endif
+endif
+
 ifneq ($(HAVE_FSL_IMX_GPU3D),true)
 LOCAL_CFLAGS += -DUSE_HWCOMPOSER_VERSION_1_2
 endif

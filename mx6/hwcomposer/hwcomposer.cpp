@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2013 Freescale Semiconductor, Inc. All Rights Reserved.
+ * Copyright (C) 2009-2014 Freescale Semiconductor, Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -306,6 +306,11 @@ static int hwc_getDisplayAttributes(struct hwc_composer_device_1 *dev,
 
 /*****************************************************************************/
 
+static void setMediaColorConvert()
+{
+    property_set("sys.media.color_converter", "1");
+}
+
 static int hwc_device_open(const struct hw_module_t* module, const char* name,
         struct hw_device_t** device)
 {
@@ -362,12 +367,20 @@ static int hwc_device_open(const struct hw_module_t* module, const char* name,
         if(hw_get_module(HWC_VIV_HARDWARE_MODULE_ID,
                         (const hw_module_t**)&hwc_module) < 0) {
             ALOGE("Error! hw_get_module viv_hwc failed");
+#ifdef MEDIA_DEPEND_ON_GPU2D
+        // when platform doesn't have GPU 2D/3D and VPU,
+        // the media software render should use color converter.
+        setMediaColorConvert();
+#endif
             goto nor_exit;
         }
 
         if(hwc_open_1(hwc_module, &(dev->m_viv_hwc)) != 0) {
             ALOGE("Error! viv_hwc open failed");
-            goto nor_exit;
+#ifdef MEDIA_DEPEND_ON_GPU2D
+        setMediaColorConvert();
+#endif
+           goto nor_exit;
         }
 nor_exit:
 
