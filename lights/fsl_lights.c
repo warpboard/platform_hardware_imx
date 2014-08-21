@@ -63,6 +63,7 @@ static int set_light_backlight(struct light_device_t* dev,
     int result = -1;
     unsigned int color = state->color;
     unsigned int brightness = 0, max_brightness = 0;
+    int max_brightness_char_lenght = -1;
     FILE *file;
 
     brightness = ((77*((color>>16)&0x00ff)) + (150*((color>>8)&0x00ff)) +
@@ -74,7 +75,19 @@ static int set_light_backlight(struct light_device_t* dev,
         ALOGE("can not open file %s\n", max_path);
         return result;
     }
-    fread(&max_brightness, 1, 3, file);
+    // Check max_brightness size
+    fseek(file, 0L, SEEK_END);
+    max_brightness_char_lenght = ftell(file);
+    if (max_brightness_char_lenght < 2) {
+        if (max_brightness_char_lenght == -1) {
+            ALOGE("max_brightness file is empty\n");
+        } else {
+            ALOGE("max_brightness file is too short\n");
+        }
+        return result;
+    }
+    rewind(file);
+    fread(&max_brightness, 1, max_brightness_char_lenght - 1, file);
     fclose(file);
 
     max_brightness = atoi((char *) &max_brightness);
